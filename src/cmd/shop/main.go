@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"go_2601_04/internal/application/message"
+	"go_2601_04/internal/infrastructure/config"
 	model "go_2601_04/internal/infrastructure/persistence/mysql"
 	"go_2601_04/internal/interface/http"
 
@@ -11,14 +13,22 @@ import (
 )
 
 func main() {
-	// 1. Setup Database
-	dsn := "user:user_password@tcp(shop-db)/my_database?charset=utf8mb4&parseTime=True&loc=Local"
+	cfg := config.LoadConfig()
+	// Setup Database
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
+	)
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect to database: " + err.Error())
 	}
 
-	// 2. Auto Migrate model Infrastructure
+	// Auto Migrate model Infrastructure
 	db.AutoMigrate(&model.Message{})
 
 	sqlDB, _ := db.DB()
