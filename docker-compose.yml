@@ -1,0 +1,36 @@
+services:
+  shop-db:
+    build:
+      context: .
+      dockerfile: dockerfiles/mysql/Dockerfile
+    ports:
+      - "44406:3306"
+    volumes:
+      - shop-db-store:/var/lib/mysql
+      - ./dockerfiles/mysql/my.cnf:/etc/my.cnf
+    networks:
+      shop-network:
+        aliases:
+          - db
+
+  shop-go:
+    build:
+      context: .
+      dockerfile: dockerfiles/go/Dockerfile.go_local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/go/app
+      - ./ssl/shop:/etc/ssl/certs/app
+    tty: true
+    networks:
+      shop-network:
+        aliases:
+          - backend.shop.internal
+
+networks:
+  shop-network:
+    name: shop-network
+
+volumes:
+  shop-db-store:

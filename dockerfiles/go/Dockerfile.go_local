@@ -1,0 +1,38 @@
+FROM golang:1.23-alpine
+
+# バージョンは 2025/01/22 で一番新しいものを使用しています
+
+RUN apk update
+RUN apk add git curl make
+
+# 公式でgo installよりbinaryインストールを推奨している
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.0.2
+
+WORKDIR /go/app
+
+COPY ./src ./
+RUN go mod download
+
+# ホットリロード
+RUN go install github.com/air-verse/air@v1.61.7
+# debug用
+RUN go install github.com/go-delve/delve/cmd/dlv@v1.24.0
+# DI
+RUN go install github.com/google/wire/cmd/wire@v0.6.0
+# CLIでMigration
+RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.1
+# openapi.ymlを自動生成 oapi-codegen
+RUN go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
+# 不足分のimportを自動で追加してくれるやーつ
+RUN go install golang.org/x/tools/cmd/goimports@v0.36.0
+# Mockery @latestは使用できない(ライブラリの管理者からの警告) https://vektra.github.io/mockery/latest/installation/
+RUN go install github.com/vektra/mockery/v3@v3.5.1
+
+ENV DB_HOST="shop-db"
+ENV DB_PORT="3306"
+ENV DB_USER="user"
+ENV DB_PASSWORD="user_password"
+ENV DB_NAME="my_database"
+ENV GIN_MODE=debug
+ENV APP_ENV=local
+ENV TZ="Asia/Tokyo"
