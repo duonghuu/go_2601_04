@@ -31,6 +31,7 @@ services:
 networks:
   shop-network:
     name: shop-network
+    external: true
 
 volumes:
   shop-db-store:
