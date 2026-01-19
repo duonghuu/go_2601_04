@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine
+FROM golang:1.24-alpine
 
 # バージョンは 2025/01/22 で一番新しいものを使用しています
 

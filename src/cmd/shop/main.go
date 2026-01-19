@@ -1,48 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"go_2601_04/internal/application/message"
-	"go_2601_04/internal/infrastructure/config"
-	model "go_2601_04/internal/infrastructure/persistence/mysql"
-	"go_2601_04/internal/interface/http"
+	app "go_2601_04/internal/application/user"
+	mysqlRepo "go_2601_04/internal/infrastructure/persistence/mysql"
+	handler "go_2601_04/internal/interfaces/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
-	cfg := config.LoadConfig()
-	// Setup Database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBName,
-	)
+	dsn := "user:user_password@tcp(shop-db:3306)/my_database?charset=utf8mb4&parseTime=True&loc=Local"
+	db := mysqlRepo.NewDatabase(dsn)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Failed to connect to database: " + err.Error())
-	}
+	mysqlRepo.RunMigrations(db, "migrations")
 
-	// Auto Migrate model Infrastructure
-	db.AutoMigrate(&model.Message{})
-
-	sqlDB, _ := db.DB()
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
-
-	repo := model.NewMessageRepository(db)
-
-	appSvc := message.NewService(repo)
-
-	handler := http.NewHandler(appSvc)
+	repo := mysqlRepo.NewUserRepository(db)
+	service := app.NewService(repo)
+	userHandler := handler.NewUserHandler(service)
 
 	r := gin.Default()
-	r.GET("/hello", handler.HelloWorld)
+	userHandler.Register(r)
 
 	r.Run(":8080")
 }
