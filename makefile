@@ -28,3 +28,7 @@ migrate-fresh:
 	docker compose exec shop-db mysql --user=root --password=root_password -e 'DROP DATABASE IF EXISTS `my_database`;'
 	docker compose exec shop-db mysql --user=root --password=root_password -e 'CREATE DATABASE `my_database`;'
 	@make migrate-up
+#--------------------- wire start
+wire:
+	docker compose exec shop-go wire gen ./internal/di
+	docker compose exec shop-go wire gen -output_file_prefix=test_ ./internal/di/wire-test.go ./internal/di/shop-wire-test.go
