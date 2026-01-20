@@ -6,4 +6,5 @@ type Repository interface {
 	Delete(id uint) error
 	FindByID(id uint) (*User, error)
 	FindAll() ([]User, error)
+	GetByEmail(email string) (*User, error)
 }

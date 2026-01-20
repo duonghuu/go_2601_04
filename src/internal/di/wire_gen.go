@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"go_2601_04/internal/application/article"
+	"go_2601_04/internal/application/auth"
 	"go_2601_04/internal/application/user"
 	article2 "go_2601_04/internal/domain/article"
 	user2 "go_2601_04/internal/domain/user"
@@ -27,7 +28,9 @@ func InitializeApp(dsn string) (*gin.Engine, error) {
 	articleRepository := mysql.NewArticleRepository(db)
 	articleService := article.NewArticleService(articleRepository)
 	articleHandler := http.NewArticleHandler(articleService)
-	engine := setupRouter(userHandler, articleHandler)
+	authService := auth.NewAuthService(userRepository)
+	authHandler := http.NewAuthHandler(authService)
+	engine := setupRouter(userHandler, articleHandler, authHandler)
 	return engine, nil
 }
 
@@ -37,14 +40,19 @@ func InitializeApp(dsn string) (*gin.Engine, error) {
 var repositorySet = wire.NewSet(mysql.NewUserRepository, wire.Bind(new(user2.Repository), new(*mysql.UserRepository)), mysql.NewArticleRepository, wire.Bind(new(article2.Repository), new(*mysql.ArticleRepository)))
 
 // service
-var serviceSet = wire.NewSet(user.NewUserService, article.NewArticleService)
+var serviceSet = wire.NewSet(user.NewUserService, article.NewArticleService, auth.NewAuthService)
 
 // handler
-var handlerSet = wire.NewSet(http.NewUserHandler, http.NewArticleHandler)
+var handlerSet = wire.NewSet(http.NewUserHandler, http.NewArticleHandler, http.NewAuthHandler)
 
-func setupRouter(u *http.UserHandler, a *http.ArticleHandler) *gin.Engine {
+func setupRouter(
+	u *http.UserHandler,
+	a *http.ArticleHandler,
+	authHandler *http.AuthHandler,
+) *gin.Engine {
 	r := gin.Default()
 	u.Register(r)
 	a.Register(r)
+	authHandler.Register(r)
 	return r
 }
