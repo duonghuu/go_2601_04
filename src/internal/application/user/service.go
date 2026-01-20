@@ -10,16 +10,16 @@ func NewUserService(repo domain.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Create(name, email string) (*domain.User, error) {
-	user, err := domain.NewUser(name, email)
+func (s *Service) Create(name, email, password string) (*domain.User, error) {
+	user, err := domain.NewUser(name, email, password)
 	if err != nil {
 		return nil, err
 	}
 	return user, s.repo.Create(user)
 }
 
-func (s *Service) Update(id uint, name, email string) (*domain.User, error) {
-	user, err := domain.NewUser(name, email)
+func (s *Service) Update(id uint, name, email, password string) (*domain.User, error) {
+	user, err := domain.NewUser(name, email, password)
 	if err != nil {
 		return nil, err
 	}

@@ -30,15 +30,16 @@ func (h *UserHandler) Register(r *gin.Engine) {
 
 func (h *UserHandler) create(c *gin.Context) {
 	var req struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.service.Create(req.Name, req.Email)
+	user, err := h.service.Create(req.Name, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -65,12 +66,13 @@ func (h *UserHandler) update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	var req struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	c.ShouldBindJSON(&req)
 
-	user, err := h.service.Update(uint(id), req.Name, req.Email)
+	user, err := h.service.Update(uint(id), req.Name, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
