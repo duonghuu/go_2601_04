@@ -10,12 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"go_2601_04/internal/application/article"
-	"go_2601_04/internal/application/auth"
+	auth2 "go_2601_04/internal/application/auth"
 	"go_2601_04/internal/application/user"
 	article2 "go_2601_04/internal/domain/article"
 	user2 "go_2601_04/internal/domain/user"
 	"go_2601_04/internal/infrastructure/persistence/mysql"
 	"go_2601_04/internal/interfaces/http"
+	"go_2601_04/pkg/auth"
 )
 
 // Injectors from wire.go:
@@ -28,7 +29,8 @@ func InitializeApp(dsn string) (*gin.Engine, error) {
 	articleRepository := mysql.NewArticleRepository(db)
 	articleService := article.NewArticleService(articleRepository)
 	articleHandler := http.NewArticleHandler(articleService)
-	authService := auth.NewAuthService(userRepository)
+	jwtService := auth.NewJWTService()
+	authService := auth2.NewAuthService(userRepository, jwtService)
 	authHandler := http.NewAuthHandler(authService)
 	engine := setupRouter(userHandler, articleHandler, authHandler)
 	return engine, nil
@@ -40,7 +42,7 @@ func InitializeApp(dsn string) (*gin.Engine, error) {
 var repositorySet = wire.NewSet(mysql.NewUserRepository, wire.Bind(new(user2.Repository), new(*mysql.UserRepository)), mysql.NewArticleRepository, wire.Bind(new(article2.Repository), new(*mysql.ArticleRepository)))
 
 // service
-var serviceSet = wire.NewSet(user.NewUserService, article.NewArticleService, auth.NewAuthService)
+var serviceSet = wire.NewSet(user.NewUserService, article.NewArticleService, auth2.NewAuthService, auth.NewJWTService, wire.Bind(new(auth.TokenService), new(*auth.JWTService)))
 
 // handler
 var handlerSet = wire.NewSet(http.NewUserHandler, http.NewArticleHandler, http.NewAuthHandler)

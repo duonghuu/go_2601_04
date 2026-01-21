@@ -12,6 +12,7 @@ import (
 	mysqlRepo "go_2601_04/internal/infrastructure/persistence/mysql"
 	"go_2601_04/internal/interfaces/http"
 	handler "go_2601_04/internal/interfaces/http"
+	"go_2601_04/pkg/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -31,6 +32,8 @@ var serviceSet = wire.NewSet(
 	userApp.NewUserService,
 	articleApp.NewArticleService,
 	authApp.NewAuthService,
+	auth.NewJWTService,
+	wire.Bind(new(auth.TokenService), new(*auth.JWTService)),
 )
 
 // handler

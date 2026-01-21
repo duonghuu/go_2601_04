@@ -2,7 +2,6 @@ package http
 
 import (
 	app "go_2601_04/internal/application/auth"
-	"go_2601_04/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,25 +33,14 @@ func (h *AuthHandler) login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Login(req.Email, req.Password)
+	accessToken, err := h.service.Login(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "fail"})
 		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "success", "accessToken": accessToken})
 	}
 
-	hashPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	isValidPassword := utils.CheckPasswordHash(user.Password, hashPassword)
-	
-	if !isValidPassword {
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-		return
-	}
-	c.JSON(http.StatusBadRequest, gin.H{"message": "fail"})
 }
 
 func (h *AuthHandler) logout(c *gin.Context) {}
