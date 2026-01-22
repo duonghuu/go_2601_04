@@ -1,9 +1,12 @@
 package http
 
 import (
+	"fmt"
 	app "go_2601_04/internal/application/auth"
-	"net/http"
+	"go_2601_04/pkg/response"
+	"go_2601_04/pkg/validator"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,20 +28,37 @@ func (h *AuthHandler) Register(r *gin.Engine) {
 
 func (h *AuthHandler) login(c *gin.Context) {
 	var req struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
+		Password string `json:"password" validate:"required"`
+		Email    string `json:"email" validate:"required,email"`
+	}
+	if errs := validator.ValidateStruct(req); len(errs) > 0 {
+		c.JSON(422, response.ApiResponse[any]{
+			Success: false,
+			Errors:  errs,
+			Message: "Dữ liệu đầu vào không hợp lệ",
+		})
+		return
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(400, response.ApiResponse[any]{Success: false, Message: "Sai định dạng JSON", Errors: err.Error()})
 		return
 	}
-
+	fmt.Println("==========req")
 	accessToken, err := h.service.Login(req.Email, req.Password)
+	spew.Dump(err)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "fail"})
+		response.Error(
+			c,
+			401,
+			response.CodeUnauthorized,
+			"Username or password not valid",
+			nil,
+		)
 		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "success", "accessToken": accessToken})
+		data := make(map[string]any)
+		data["accessToken"] = accessToken
+		response.OK(c, data)
 	}
 
 }

@@ -49,7 +49,7 @@ func (r *UserRepository) FindAll() ([]domain.User, error) {
 
 func (r *UserRepository) GetByEmail(email string) (*domain.User, error) {
 	var user domain.User
-	if err := r.db.Where("email LIKE ?", "%"+email+"%").First(&user).Error; err != nil {
+	if err := r.db.Debug().Where("email LIKE ?", "%"+email+"%").First(&user).Error; err != nil {
 		return nil, domain.ErrUserNotFound
 	}
 	return &user, nil
